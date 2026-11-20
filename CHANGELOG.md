@@ -36,6 +36,14 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## DDWS fork
+
+Changes carried by the DDWS-com/cosmos-sdk fork on top of akash-network/cosmos-sdk `v0.53.4-akash.b.10`.
+
+### Bug Fixes
+
+* (crypto) [GO-2026-5932](https://pkg.go.dev/vuln/GO-2026-5932) Remove the import of the deprecated `golang.org/x/crypto/openpgp/armor`. `crypto/armor.go` now carries that ASCII armor codec as private code, with its BSD-3-Clause notice. Armored keys exported by earlier versions still import. Headers are now written in sorted order. Decode errors keep their message but are no longer `x/crypto/openpgp/errors.StructuralError` values.
+
 ## [v0.53.4](https://github.com/cosmos/cosmos-sdk/releases/tag/v0.53.3) - 2025-07-25
 
 This patch update also includes minor dependency bumps.

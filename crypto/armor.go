@@ -298,16 +298,47 @@ func DecodeArmor(armorStr string) (blockType string, headers map[string]string, 
 // deprecated and flagged as a whole by GO-2026-5932, and newer x/crypto
 // releases no longer contain it. It is reproduced here, unexported, so that
 // armored keys keep their exact encoding and every armor the SDK has ever
-// accepted still decodes. The only change is that EncodeArmor writes headers
-// in sorted key order instead of random map order, which is one of the
-// orderings the old encoder could already produce.
+// accepted still decodes.
+//
+// The only behaviour change is that EncodeArmor writes headers in sorted key
+// order instead of Go map iteration order. Output is byte-identical to the old
+// encoder for the header sets the SDK itself writes (including the private key
+// set kdf, salt, type). For other inputs with several headers the output may
+// differ from what the old encoder produced, but only in header order, which
+// decoding ignores.
 //
 // Copyright 2010 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found at https://go.dev/LICENSE.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are
+// met:
+//
+//   - Redistributions of source code must retain the above copyright
+//     notice, this list of conditions and the following disclaimer.
+//   - Redistributions in binary form must reproduce the above
+//     copyright notice, this list of conditions and the following disclaimer
+//     in the documentation and/or other materials provided with the
+//     distribution.
+//   - Neither the name of Google LLC nor the names of its
+//     contributors may be used to endorse or promote products derived from
+//     this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// armorError has the type and message of the old
-// golang.org/x/crypto/openpgp/errors.StructuralError.
+// armorError keeps the error message of the old
+// golang.org/x/crypto/openpgp/errors.StructuralError, so callers that compare
+// error strings see no change. It is a new type: errors.As against x/crypto's
+// StructuralError no longer matches. No SDK or DDWS caller does that.
 type armorError string
 
 func (e armorError) Error() string {
@@ -647,7 +678,8 @@ func (e *armorEncoding) Close() (err error) {
 }
 
 // armorEncode returns a WriteCloser which will encode the data written to it
-// in OpenPGP armor. Headers are written in sorted key order.
+// in OpenPGP armor. Headers are written in sorted key order (see the codec
+// comment above for how that compares with the old encoder).
 func armorEncode(out io.Writer, blockType string, headers map[string]string) (w io.WriteCloser, err error) {
 	bType := []byte(blockType)
 	err = armorWriteSlices(out, armorStart, bType, armorEndOfLineOut)

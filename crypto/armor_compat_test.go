@@ -50,8 +50,11 @@ func loadArmorGolden(t *testing.T) armorGolden {
 }
 
 // TestEncodeArmorMatchesLegacyEncoder checks that EncodeArmor output is
-// byte-identical to the old x/crypto encoder (headers in sorted order, one of
-// the orders the old encoder produced from map iteration).
+// byte-identical to output of the old x/crypto encoder. The golden vectors
+// keep only old outputs whose headers happened to come out in sorted order;
+// the old encoder cannot produce that order for every multi-header input, but
+// it does for the header sets the SDK writes, and header order does not affect
+// decoding.
 func TestEncodeArmorMatchesLegacyEncoder(t *testing.T) {
 	g := loadArmorGolden(t)
 	for i, c := range g.Encode {
